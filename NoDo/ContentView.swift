@@ -7,8 +7,12 @@ import SwiftUI
 
 //Main View of the NoDo List screen
 struct ContentView: View {
-    @State var noDoItem: String = "" //The content of the textfield once committed
-    @State var noDoItems = [String]()
+    //Creates an empty item as there is nothing needed yet
+    @State var curNoDoItem: NoDoItem = NoDoItem(taskName: "", timeAgo: "")
+    @State var noDoTaskName: String = ""
+    @State var noDoItems = [NoDoItem]()
+    @State var timeAgo: String = ""
+    var dateObj: Date = Date()
     
     var body: some View {
         NavigationView{
@@ -19,10 +23,14 @@ struct ContentView: View {
                         
                         //TextField for the top box to input items into the list
                         TextField("What will you NOT do today?",
-                                  text: self.$noDoItem,
+                                  text: self.$noDoTaskName,
                                   onEditingChanged: { (changed) in print(changed) },
                                   onCommit: {
-                                    self.noDoItems.insert(self.noDoItem, at: 0)
+                            //Creates a new item
+                            curNoDoItem = NoDoItem(taskName: noDoTaskName, timeAgo: dateObj.timeAgo(numericDates: false))
+                            
+                            self.noDoItems.insert(curNoDoItem, at: 0) //Inserts item at top
+                            self.noDoTaskName = "" //Clears out the textfield
                         }).padding(.all, 12)
                         
                     }.background(Color.green)
@@ -31,17 +39,24 @@ struct ContentView: View {
                 }
                 
                 //Creates a list of all the items in the current array
-                List(self.noDoItems, id: \.self) { item in
-                    NoDoRow(noDoItem: noDoItem)
+                List {
+                    ForEach(self.noDoItems, id: \.taskName) { item in
+                        NoDoRow(noDoItem: curNoDoItem)
+                    }.onDelete(perform: deleteItem)
                 }
                 
             }.navigationBarTitle (Text ("NoDo"))
         }
     }
+    
+    func deleteItem(at offsets: IndexSet) {
+        self.noDoItems.remove(atOffsets: offsets)
+        
+    }
 }
 
 struct NoDoRow: View {
-    @State var noDoItem: String = ""
+    @State var noDoItem: NoDoItem
     @State var isComplete: Bool = false
     var dateObj: Date = Date()
     
@@ -51,7 +66,7 @@ struct NoDoRow: View {
                 
                 //First Line of the row
                 HStack {
-                    Text(noDoItem)
+                    Text(noDoItem.taskName)
                         .foregroundColor(.white)
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
@@ -75,6 +90,12 @@ struct NoDoRow: View {
         .onTapGesture { isComplete.toggle() }
         .opacity((self.isComplete) ? 0.3 : 1)
     }
+}
+
+//A single task item with a name and timeAgo
+struct NoDoItem {
+    var taskName: String
+    var timeAgo: String
 }
 
 struct ContentView_Previews: PreviewProvider {
