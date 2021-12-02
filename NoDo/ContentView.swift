@@ -8,6 +8,8 @@ import SwiftUI
 //Main View of the NoDo List screen
 struct ContentView: View {
     @State var nodo: String = "" //The content of the textfield once committed
+    @State var nodoItems = [String]()
+    
     var body: some View {
         NavigationView{
             VStack {
@@ -18,12 +20,17 @@ struct ContentView: View {
                         TextField("What do you NOT want to do today?",
                                   text: self.$nodo,
                                   onEditingChanged: { (changed) in print(changed) },
-                                  onCommit: { print("onCommit")}
-                        ).padding(.all, 12)
+                                  onCommit: {
+                            self.nodoItems.insert(self.nodo, at: 0)
+                            //print("onCommit")
+                        }).padding(.all, 12)
                         
                     }.background(Color.green)
                     .clipShape(RoundedRectangle(cornerRadius: 5))
                     .shadow(radius: 5).padding(.trailing, 8)
+                }
+                List(self.nodoItems, id: \.self) { item in
+                    Text(item)
                 }
             }.navigationBarTitle (Text ("NoDo"))
         }
